@@ -1,9 +1,11 @@
 const { Router } = require('express');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const { BooksService } = require('./books.service');
 
 const BooksController = Router();
 const urlEncodedParser = bodyParser.urlencoded({ extended: false });
+const multiPartFormDataParser = multer().single('fileBook');
 
 BooksController.get('/', async (req, res) => {
   const result = await BooksService.getAllBooks();
@@ -16,12 +18,14 @@ BooksController.get('/:id', async (req, res) => {
   const result = await BooksService.getBookById(id);
 
   return result === undefined
-    ? res.status(404).send()
+    ? res.sendStatus(404)
     : res.json(result);
 });
 
-BooksController.post('/', urlEncodedParser, async (req, res) => {
+BooksController.post('/', multiPartFormDataParser, async (req, res) => {
   const { title, description, authors, favorite, fileCover, fileName } = req.body;
+  const { file: fileBook } = req;
+
   const result = await BooksService.createBook({
     title,
     description,
@@ -29,6 +33,7 @@ BooksController.post('/', urlEncodedParser, async (req, res) => {
     favorite,
     fileCover,
     fileName,
+    fileBook,
   });
 
   return 'error' in result
@@ -50,7 +55,7 @@ BooksController.put('/:id', urlEncodedParser, async (req, res) => {
   });
 
   if (result === undefined) {
-    return res.status(404).send();
+    return res.sendStatus(404);
   }
 
   return 'error' in result
@@ -66,6 +71,19 @@ BooksController.delete('/:id', async (req, res) => {
   return result
     ? res.json(result)
     : res.status(404).json(result);
+});
+
+BooksController.get('/:id/download', async (req, res) => {
+  const { id } = req.params;
+  const result = await BooksService.getBookById(id);
+
+  if (result === undefined) {
+    return res.sendStatus(404);
+  }
+
+  const { fileBook } = result;
+
+  return res.download(fileBook);
 });
 
 exports.BooksController = BooksController;

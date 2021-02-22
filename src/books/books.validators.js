@@ -1,13 +1,15 @@
 const Joi = require('joi');
 
 const BookToCreateSchema = Joi.object({
-  id: Joi.string().uuid().required(),
   title: Joi.string().required(),
   description: Joi.string(),
   authors: Joi.string().required(),
   favorite: Joi.string(),
   fileCover: Joi.string().required(),
   fileName: Joi.string().required(),
+  fileBook: Joi.object({
+    originalname: Joi.string().pattern(/\.txt|pdf|docx$/iu).required(),
+  }).required().unknown(),
 });
 
 const BookToUpdateSchema = Joi.object({

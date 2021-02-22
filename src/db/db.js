@@ -10,7 +10,7 @@ class DB {
 
   constructor(entities) {
     if (!entities && typeof entities !== 'string') {
-      throw new Error()
+      throw new Error('The entity name is missing while initializing DB class.');
     }
 
     this.entities = [];
