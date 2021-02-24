@@ -1,11 +1,15 @@
 const { Router } = require('express');
-const bodyParser = require('body-parser');
 const multer = require('multer');
+const { FileStorage } = require('../file-storage');
 const { BooksService } = require('./books.service');
+const { fileFilter } = require('./books.validators');
 
 const BooksController = Router();
-const urlEncodedParser = bodyParser.urlencoded({ extended: false });
-const multiPartFormDataParser = multer().single('fileBook');
+const fileStorage = new FileStorage('books');
+const multiPartFormDataParser = multer({
+  storage: fileStorage.storage,
+  fileFilter,
+}).single('fileBook');
 
 BooksController.get('/', async (req, res) => {
   const result = await BooksService.getAllBooks();
@@ -26,6 +30,7 @@ BooksController.post('/', multiPartFormDataParser, async (req, res) => {
   const { title, description, authors, favorite, fileCover, fileName } = req.body;
   const { file: fileBook } = req;
 
+  const filePath = fileBook?.path;
   const result = await BooksService.createBook({
     title,
     description,
@@ -33,18 +38,26 @@ BooksController.post('/', multiPartFormDataParser, async (req, res) => {
     favorite,
     fileCover,
     fileName,
-    fileBook,
+    fileBook: filePath,
   });
 
-  return 'error' in result
-    ? res.status(400).json(result.error.details)
-    : res.json(result);
+  if ('error' in result) {
+    if (filePath) {
+      fileStorage.deleteFile(filePath);
+    }
+
+    return res.status(400).json(result.error.details);
+  }
+
+  return res.json(result);
 });
 
-BooksController.put('/:id', urlEncodedParser, async (req, res) => {
+BooksController.put('/:id', multiPartFormDataParser, async (req, res) => {
   const { id } = req.params;
   const { title, description, authors, favorite, fileCover, fileName } = req.body;
+  const { file: fileBook } = req;
 
+  const filePath = fileBook?.path;
   const result = await BooksService.updateBook(id, {
     title,
     description,
@@ -52,9 +65,14 @@ BooksController.put('/:id', urlEncodedParser, async (req, res) => {
     favorite,
     fileCover,
     fileName,
+    fileBook: filePath,
   });
 
   if (result === undefined) {
+    if (filePath) {
+      fileStorage.deleteFile(filePath);
+    }
+
     return res.sendStatus(404);
   }
 
@@ -66,11 +84,18 @@ BooksController.put('/:id', urlEncodedParser, async (req, res) => {
 BooksController.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
+  const bookToDelete = await BooksService.getBookById(id);
+
+  if (bookToDelete === undefined) {
+    return res.sendStatus(404);
+  }
+
+  const { fileBook } = bookToDelete;
+
+  fileStorage.deleteFile(fileBook);
   const result = await BooksService.deleteBook(id);
 
-  return result
-    ? res.json(result)
-    : res.status(404).json(result);
+  return res.json(result);
 });
 
 BooksController.get('/:id/download', async (req, res) => {

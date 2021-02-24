@@ -1,40 +1,57 @@
 const fs = require('fs');
 const path = require('path');
+const { nanoid } = require('nanoid');
+const multer = require('multer');
 
 class FileStorage {
   static ENOENT = 'ENOENT';
 
-  constructor(fileStoragePath) {
-    this.fileStoragePath = path.join(__dirname, '..', 'public', fileStoragePath);
+  static uniqueFileName(originalname) {
+    const uniqueId = nanoid(10);
+
+    return originalname.replace(/(\.[A-Za-z]+)$/i, `.${uniqueId}$&`);
+  }
+
+  constructor(pathToSaveFile) {
+    this.pathToSaveFile = path.join(__dirname, '..', 'public', pathToSaveFile);
+    this.init();
+  }
+
+  get storage() {
+    return this.diskStorage;
+  }
+
+  async init() {
+    this.diskStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, this.pathToSaveFile);
+      },
+      filename: (req, file, cb) => {
+        const { originalname } = file;
+        const uniqueFileName = FileStorage.uniqueFileName(originalname);
+
+        cb(null, uniqueFileName);
+      },
+    });
+
+    this.checkDir()
+      .catch((error) => {
+        const { code } = error;
+
+        if (code === FileStorage.ENOENT) {
+          try {
+            fs.promises.mkdir(this.pathToSaveFile);
+          } catch (error) {
+            throw new Error(`The storage for files with path '${this.pathToSaveFile}' wasn't created.`);
+          }
+        }
+      });
   }
 
   async checkDir() {
-    try {
-      await fs.promises.access(this.fileStoragePath);
+    const isDirExist = await fs.promises.access(this.pathToSaveFile);
 
-      return Promise.resolve();
-    } catch (error) {
-      const { code } = error;
-
-      if (code === FileStorage.ENOENT) {
-        try {
-          fs.promises.mkdir(this.fileStoragePath);
-        } catch (error) {
-          throw new Error(`The storage for files with path '${this.fileStoragePath}' wasn't created.`);
-        }
-      }
-    }
-  }
-
-  async saveFile(file) {
-    return this.checkDir()
-      .then(() => {
-        const { buffer, originalname } = file;
-        const filePath = path.join(this.fileStoragePath, originalname);
-        const fileBuffer = Buffer.from(buffer);
-
-        return fs.promises.appendFile(filePath, fileBuffer);
-      });
+    return isDirExist;
   }
 
   async deleteFile(filePath) {
@@ -42,10 +59,6 @@ class FileStorage {
       .then(() => {
         return fs.promises.unlink(filePath);
       });
-  }
-
-  getStorageDirPath() {
-    return this.fileStoragePath;
   }
 }
 

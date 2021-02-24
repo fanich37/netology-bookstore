@@ -1,16 +1,12 @@
-const path = require('path');
 const { DB } = require('../db');
-const { FileStorage } = require('../file-storage');
 const { Book } = require('./books.model');
 const { validateBookOnCreate, validateBookOnUpdate } = require('./books.validators');
 
 const booksDb = new DB('books');
-const booksFileStorage = new FileStorage('books');
 
 class BooksService {
-  constructor(db, fileStorage) {
+  constructor(db) {
     this.db = db;
-    this.fileStorage = fileStorage;
   }
 
   async getAllBooks() {
@@ -48,9 +44,6 @@ class BooksService {
       return { error };
     }
 
-    const { originalname } = fileBook;
-    const booksStorageDirPath = this.fileStorage.getStorageDirPath();
-    const filePath = path.join(booksStorageDirPath, originalname);
     const book = new Book({
       title,
       description,
@@ -58,14 +51,16 @@ class BooksService {
       favorite,
       fileCover,
       fileName,
-      fileBook: filePath,
+      fileBook,
     });
 
-    return Promise.all([this.db.createRecord(book), this.fileStorage.saveFile(fileBook)])
-      .then(([createdBook]) => createdBook)
-      .catch(() => {
-        throw new Error('The error occured while creating the new book.');
-      });
+    try {
+      const createdBook = this.db.createRecord(book);
+
+      return createdBook;
+    } catch (error) {
+      throw new Error('The error occured while creating the new book.');
+    }
   }
 
   async updateBook(id, data) {
@@ -97,20 +92,14 @@ class BooksService {
   }
 
   async deleteBook(id) {
-    const book = await this.getBookById(id);
+    try {
+      const result = await this.db.deleteRecord(id);
 
-    if (book === undefined) {
-      return false;
+      return result;
+    } catch (error) {
+      throw new Error(`The error occured while deleting the book with id: ${id}`);
     }
-
-    const { fileBook } = book;
-
-    return Promise.all([this.db.deleteRecord(id), this.fileStorage.deleteFile(fileBook)])
-      .then(([deleteResult]) => deleteResult)
-      .catch(() => {
-        throw new Error(`The error occured while deleting the book with id: ${id}`);
-      });
   }
 }
 
-exports.BooksService = new BooksService(booksDb, booksFileStorage);
+exports.BooksService = new BooksService(booksDb);
