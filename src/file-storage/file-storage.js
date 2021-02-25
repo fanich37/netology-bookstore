@@ -9,7 +9,10 @@ class FileStorage {
   static uniqueFileName(originalname) {
     const uniqueId = nanoid(10);
 
-    return originalname.replace(/(\.[A-Za-z]+)$/i, `.${uniqueId}$&`);
+    return originalname
+      .split(' ')
+      .join('_')
+      .replace(/(\.[A-Za-z]+)$/i, `.${uniqueId}$&`);
   }
 
   constructor(pathToSaveFile) {
