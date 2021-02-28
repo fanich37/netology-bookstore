@@ -1,0 +1,26 @@
+<%- include('../templates/open'); %>
+
+<div class="columns is-multiline">
+
+<% if (books.length === 0) { %>
+
+  <div class="column">There are no books yet. Please visit our store a bit later.</div>
+
+<% } else { %>
+
+  <% books.forEach((book) => { %>
+    <div class="column is-one-third">
+      <%- include('./book-list-item', { book }); %>
+    </div>
+  <% }); %>
+
+<% } %>
+
+</div>
+<div class="columns">
+  <div class="column">
+    <a href="/create" class="button is-success">Add new book</a>
+  </div>
+</div>
+
+<%- include('../templates/close'); %>

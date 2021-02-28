@@ -1,0 +1,20 @@
+<div class="card">
+  <div class="card-image">
+    <figure class="image is-4by3">
+      <img src="/public/books/<%= book.fileCover %>" alt="<%= book.title %>">
+    </figure>
+  </div>
+  <div class="card-content">
+    <div class="media">
+      <div class="media-content">
+        <p class="title is-4"><a href="/<%= book.id %>"><%= book.title %></a></p>
+        <p class="title is-4"><%= book.authors %></p>
+      </div>
+    </div>
+    <div class="content">
+      <%= book.description %>
+      <a href="/<%= book.id %>">Check book</a>
+      <br>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<%- include('../templates/open'); %>
+
+<div class="tile is-ancestor">
+  <div class="tile is-vertical is-12">
+    <div class="tile">
+      <div class="tile is-parent is-vertical">
+        <article class="tile is-child notification">
+          <figure class="image is-4by5">
+            <img src="/public/books/<%= book.fileCover %>" class="has-ratio" alt="<%= book.title %>">
+          </figure>
+        </article>
+      </div>
+      <div class="tile is-parent">
+        <article class="tile is-child notification">
+          <p class="subtitle"><b>Authors:</b> <i><%= book.authors %></i></p>
+          <p class="subtitle"><b>Favorites:</b> <i><%= book.favorites %></i></p>
+          <p class="subtitle"><b>Description:</b> <i><%= book.description %></i></p>
+        </article>
+      </div>
+    </div>
+    <div class="tile is-parent">
+      <article class="tile is-child notification">
+        <div class="columns">
+          <div class="column is-4">
+            <a href="/<%= book.id %>/update" class="button is-fullwidth is-primary">Update book</a>
+          </div>
+          <div class="column is-4">
+            <a href="/api/books/<%= book.id %>/download" class="button is-fullwidth">Download book</a>
+          </div>
+          <div class="column is-4">
+            <form action="/<%= book.id %>/delete" method="POST" enctype="multipart/form-data">
+              <button type="submit" class="button is-fullwidth is-danger">Delete book</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+<%- include('../templates/close'); %>

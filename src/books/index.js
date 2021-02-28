@@ -1,3 +1,5 @@
-const { BooksController } = require('./books.controller');
+const { BooksApiController } = require('./books.api.controller');
+const { BooksViewController } = require('./books.view.conroller');
 
-exports.BooksController = BooksController;
+exports.BooksApiController = BooksApiController;
+exports.BooksViewController = BooksViewController;

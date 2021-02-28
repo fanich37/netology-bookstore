@@ -36,23 +36,20 @@ class DB {
     return record;
   }
 
-  async updateRecord(id, updatedRecord) {
+  async updateRecord(id, updatedData) {
     await DB.delay();
 
     const index = this.entities.findIndex((record) => record.id === id);
-    this.entities[index] = updatedRecord;
+    this.entities[index] = {
+      ...this.entities[index],
+      ...updatedData,
+    };
 
-    return updatedRecord;
+    return this.entities[index];
   }
 
   async deleteRecord(id) {
     await DB.delay();
-
-    const isRecordToDeleteExist = this.entities.some((record) => record.id === id);
-
-    if (isRecordToDeleteExist === false) {
-      return false;
-    }
 
     this.entities = this.entities.filter((record) => record.id !== id);
 

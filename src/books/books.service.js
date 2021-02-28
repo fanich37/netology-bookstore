@@ -70,12 +70,6 @@ class BooksService {
       return { error };
     }
 
-    const bookToUpdate = await this.getBookById(id);
-
-    if (!bookToUpdate) {
-      return;
-    }
-
     const preparedData = Object.keys(value).reduce((acc, key) => {
       const propertyToUpdate = value[key];
 
@@ -83,7 +77,7 @@ class BooksService {
     }, {});
 
     try {
-      const updatedBook = await this.db.updateRecord(id, { ...bookToUpdate, ...preparedData });
+      const updatedBook = await this.db.updateRecord(id, preparedData);
 
       return updatedBook;
     } catch (error) {

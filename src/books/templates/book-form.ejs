@@ -1,0 +1,70 @@
+<%- include('../templates/open'); %>
+
+<% const isEditBook = book !== null; %>
+
+<form action="<%= formAction %>" method="POST" enctype="multipart/form-data">
+
+  <div class="columns is-multiline">
+    <div class="column is-half">
+
+      <% textFields.forEach(({ name, type, label }) => { %>
+      <%
+        const error = errors && errors[name] || '';
+        const errorClass = error ? 'is-danger' : '';
+      %>
+      <div class="field">
+        <label class="label"><%= label %></label>
+        <div class="control">
+          <input
+            class="input <%= errorClass %>"
+            name="<%= name %>"
+            type="<%= type %>"
+            placeholder="<%= label %>"
+            value="<%= isEditBook ? book[name] : '' %>"
+          >
+        </div>
+        <% if (error) { %>
+          <p class="help is-danger"><%= error %></p>
+        <% } %>
+      </div>
+      <% }); %>
+
+      <div class="columns">
+        <% fileFields.forEach(({ name, label, fileLabel }) => { %>
+        <% const error = errors && errors[name] || ''; %>
+        <div class="column is-half">
+          <div class="field">
+            <label class="label"><%= label %></label>
+            <div class="file is-boxed is-fullwidth">
+              <label class="file-label">
+                <input class="file-input" type="file" name="<%= name %>">
+                <span class="file-cta">
+                  <span class="file-label">
+                    Choose file to upload...
+                  </span>
+                </span>
+                <% if (isEditBook) { %>
+                  <span class="file-name">
+                    <%= book[name] %>
+                  </span>
+                <% } %> 
+              </label>
+            </div>
+            <% if (error) { %>
+              <p class="help is-danger"><%= error %></p>
+            <% } %>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+
+      <div class="field">
+        <button type="submit" class="button is-fullwidth is-success"><%= actionName %></button>
+      </div>
+    </div>
+
+  </div>
+
+</form>
+
+<%- include('../templates/close'); %>

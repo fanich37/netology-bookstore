@@ -24,6 +24,10 @@ class FileStorage {
     return this.diskStorage;
   }
 
+  get storagePath() {
+    return this.pathToSaveFile;
+  }
+
   async init() {
     this.diskStorage = multer.diskStorage({
       destination: (req, file, cb) => {
@@ -57,9 +61,11 @@ class FileStorage {
     return isDirExist;
   }
 
-  async deleteFile(filePath) {
+  async deleteFile(fileName) {
     return this.checkDir()
       .then(() => {
+        const filePath = path.join(this.pathToSaveFile, fileName);
+
         return fs.promises.unlink(filePath);
       });
   }
