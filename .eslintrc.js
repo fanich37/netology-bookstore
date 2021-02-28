@@ -39,5 +39,6 @@ module.exports = {
       'exports': 'always-multiline',
       'functions': 'always-multiline',
     }],
+    'no-unused-vars': ['error', { 'varsIgnorePattern': '^_$' }],
   },
 };
