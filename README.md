@@ -25,4 +25,4 @@
 
 #### Задание 3
 
-По пошаговой [инструкции](heroku.md) опубликовать проект из _задания 2_ на Heroku.
+По пошаговой [инструкции](https://github.com/netology-code/ndse-homeworks/blob/master/008-ejs/heroku.md) опубликовать проект из _задания 2_ на Heroku.
