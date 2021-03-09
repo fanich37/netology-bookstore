@@ -1,7 +1,9 @@
 const { Router } = require('express');
+const { fetchData } = require('../utils');
 const { BooksService } = require('./books.service');
 const { multiPartFormDataParser, fileStorage } = require('./books.middleware');
 const { textFields, fileFields, prepareFormErrors } = require('./books.form');
+const { VIEWS_COUNTER_URL } = process.env;
 
 const BooksViewController = Router();
 
@@ -68,6 +70,7 @@ BooksViewController.post('/create', multiPartFormDataParser, async (req, res) =>
 
 BooksViewController.get('/:id', async (req, res) => {
   const { id } = req.params;
+  const viewsCounterUrl = `${VIEWS_COUNTER_URL}/counter/${id}/incr`;
 
   const book = await BooksService.getBookById(id);
 
@@ -75,11 +78,20 @@ BooksViewController.get('/:id', async (req, res) => {
     return res.status(404).render('not-found', { pageTitle: 'Not found', currentRoute: 'Not found' });
   }
 
+  let views;
+
+  try {
+    views = await fetchData(viewsCounterUrl, { method: 'POST' });
+  } catch (error) {
+    views = 'not available';
+  }
+
   const { title } = book;
 
   return res.render('book-card', {
     pageTitle: title,
     book,
+    views,
     currentRoute: title,
   });
 });
