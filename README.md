@@ -1,4 +1,4 @@
-# Домашнее задание к занятию «2.4 Docker»
+# Домашнее задание к занятию «2.5 База данных и хранение данных»
 
 **Правила выполнения домашней работы:**
 
@@ -8,47 +8,76 @@
 - Во время проверки по частям ваша домашняя работа будет со статусом «На доработке».
 - Любые вопросы по решению задач задавайте в Slack.
 
-## Предисловие
+#### Задание 1
 
-В домашнем задании развиваем приложение "Библиотека".
+Чтобы в будущем вам было легче работать с **MongoDB**, изучите раздел
+документации про использование [**CRUD Operations**](https://docs.mongodb.com/manual/crud/)
 
-## Задание 1 - Контейнеризация
+#### Задание 2
 
-Контейнеризировать приложение "Библиотека" и опубликовать его на hub.docker.com.
+В файле **README.md** написать следующие запросы для **MongoDB**:
 
-### Критерии выполнения
+- запрос(ы) для _вставки_ данных минимум о двух книгах в коллекцию **books**
+- запрос для _поиска_ полей документов коллекции **books** по полю _title_
+- запрос для _редактирования_ полей: _description_ и _authors_ коллекции **books** по _\_id_ записи
 
-В результате выполнения задания в исходном коде приложения должен появиться Dockerfile. А в публичном репозитории, созданном пользователем на hub.docker.com, образ.
+\*Каждый документ коллекции **books** должен содержать следующую структуру данных:
 
-## Задание 2 - Микросервисы
+```javascript
+{
+  title: "string",
+  description: "string",
+  authors: "string"
+}
+```
 
-Добавьте в приложение счётчик просмотра книг:
+#### Запросы
 
-- счётчик увеличивается при каждом просмотре книги
-- за хранение значения счётчика отвечает отдельное приложение
-- данные счётчика хранятся на диске и переживают рестарт приложения или контейнера
+- запросы на добавление записей:
 
-Используйте docker-compose для разработки приложения в контейнере.
+```javascript
+const result = await db.collection('books').insertOne({
+  title: 'Some book',
+  description: 'Some book description',
+  authors: 'J. Snow',
+});
+const result = await db.collection('books').insertOne({
+  title: 'Second book',
+  description: 'Second book description',
+  authors: 'S. John',
+});
+// or
+const result = await db.collection('books').insertMany([
+  {
+    title: 'Some book',
+    description: 'Some book description',
+    authors: 'J. Snow',
+  },
+  {
+    title: 'Second book',
+    description: 'Second book description',
+    authors: 'S. John',
+  },
+]);
+```
 
-### Критерии выполнения
+- запрос на поиск по полю `title`:
 
-В результате выполнения задания
+```javascript
+const result = await db.collection('books').find({ title: 'Second book' });
+// or
+const result = await db
+  .collection('books')
+  .find({ title: { $eq: 'Second book' } });
+```
 
-1. создано NodeJs приложение, обрабатывающее два роута:
-   - увеличить счётчик `POST /counter/:bookId/incr`
-   - получить значение счётчика `GET /counter/:bookId`
-     приложение контейнеризировано
-1. в основном приложении при просмотре книги
-   - увеличение счётчика
-   - отображение значения счётчика
-1. создан docker-compose.yml, запуск которого поднимает оба приложения и позволяет продемонстрировать работу счётчика
+- запрос на изменение `authors` и `description` по `_id` книги:
 
-В исходном коде приложения должен появиться docker-compose.yml
-
-## Задание 3\* - Микросервисы
-
-Опубликуйте докеризированные приложения на heroku, используя способ развёртывания через контейнеры.
-
-### Критерии выполнения
-
-Приложение опубликовано на heroku путём публикации контейнера, используя heroku cli.
+```javascript
+const result = await db
+  .collection('books')
+  .updateOne(
+    { _id: 'some_random_id_generated_by_mongo' },
+    { $set: { description: 'New description', authors: 'New author' } }
+  );
+```
