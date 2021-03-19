@@ -4,18 +4,31 @@ services:
   book-store:
     build: .
     env_file:
-      - .env
+      - .env.dev
     ports:
-      - '3000:3000'
+      - 3000:3000
     volumes:
       - './src:/var/www/bookstore/src'
     command: npm run start:dev
     depends_on:
       - views-counter
+      - db
 
   views-counter:
     image: fanich37/views-counter
     volumes:
       - './storage:/var/www/view-counter/storage'
     ports:
-      - '3002:8080'
+      - 3002:8080
+
+  db:
+    image: mongo:4.4.4-bionic
+    ports:
+      - 27017:27017
+    restart: always
+    env_file:
+      - .env.dev
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=bookstore
