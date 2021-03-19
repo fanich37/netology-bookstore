@@ -1,1 +1,1 @@
-exports.MOCK_USER = { id: 1, mail: 'test@mail.ru' };
+exports.MOCK_USER = { _id: '1', mail: 'test@mail.ru' };

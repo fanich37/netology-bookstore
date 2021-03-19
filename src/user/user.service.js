@@ -1,16 +1,20 @@
-const { MOCK_USER } = require('./user.mock');
 const { DB } = require('../db');
 
-const userDb = new DB('user');
-userDb.createRecord(MOCK_USER);
+const userDb = new DB('user', { _id: String, mail: String });
 
 class UserService {
   constructor(db) {
     this.db = db;
   }
 
-  login(id = MOCK_USER.id) {
-    return this.db.getOneById(id);
+  async login(id) {
+    try {
+      const result = await this.db.getOneById(id);
+
+      return result;
+    } catch (error) {
+      throw new Error('The error occured in userService');
+    }
   }
 }
 
