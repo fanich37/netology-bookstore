@@ -6,19 +6,27 @@ const { multiPartFormDataParser, fileStorage } = require('./books.middleware');
 const BooksApiController = Router();
 
 BooksApiController.get('/', async (req, res) => {
-  const result = await BooksService.getAllBooks();
+  try {
+    const result = await BooksService.getAllBooks();
 
-  return res.json(result);
+    return res.json(result);
+  } catch (error) {
+    throw new Error('The error occured while getting all books');
+  }
 });
 
 BooksApiController.get('/:id', async (req, res) => {
   const { id } = req.params;
 
-  const book = await BooksService.getBookById(id);
+  try {
+    const book = await BooksService.getBookById(id);
 
-  return book === undefined
-    ? res.sendStatus(404)
-    : res.json(book);
+    return book === null
+      ? res.sendStatus(404)
+      : res.json(book);
+  } catch (error) {
+    throw new Error(`The error occured while getting the book with id ${id}`);
+  }
 });
 
 BooksApiController.post('/', multiPartFormDataParser, async (req, res) => {
@@ -29,29 +37,33 @@ BooksApiController.post('/', multiPartFormDataParser, async (req, res) => {
   const fileBookName = fileBook?.[0]?.originalname;
   const fileCoverPath = fileCover?.[0]?.filename;
 
-  const result = await BooksService.createBook({
-    title,
-    description,
-    authors,
-    favorite,
-    fileCover: fileCoverPath,
-    fileName: fileBookName,
-    fileBook: fileBookPath,
-  });
+  try {
+    const result = await BooksService.createBook({
+      title,
+      description,
+      authors,
+      favorite,
+      fileCover: fileCoverPath,
+      fileName: fileBookName,
+      fileBook: fileBookPath,
+    });
 
-  if ('error' in result) {
-    if (fileBookPath) {
-      fileStorage.deleteFile(fileBookPath);
+    if ('error' in result) {
+      if (fileBookPath) {
+        fileStorage.deleteFile(fileBookPath);
+      }
+
+      if (fileCoverPath) {
+        fileStorage.deleteFile(fileCoverPath);
+      }
+
+      return res.status(400).json(result.error.details);
     }
 
-    if (fileCoverPath) {
-      fileStorage.deleteFile(fileCoverPath);
-    }
-
-    return res.status(400).json(result.error.details);
+    return res.json(result);
+  } catch (error) {
+    throw new Error('The error occured while creating new book');
   }
-
-  return res.json(result);
 });
 
 BooksApiController.put('/:id', multiPartFormDataParser, async (req, res) => {
@@ -63,66 +75,78 @@ BooksApiController.put('/:id', multiPartFormDataParser, async (req, res) => {
   const fileBookName = fileBook?.[0]?.originalname;
   const fileCoverPath = fileCover?.[0]?.filename;
 
-  const bookToUpdate = await BooksService.getBookById(id);
+  try {
+    const bookToUpdate = await BooksService.getBookById(id);
 
-  if (bookToUpdate === undefined) {
-    if (fileBookPath) {
-      fileStorage.deleteFile(fileBookPath);
+    if (bookToUpdate === null) {
+      if (fileBookPath) {
+        fileStorage.deleteFile(fileBookPath);
+      }
+
+      if (fileCoverPath) {
+        fileStorage.deleteBook(fileCoverPath);
+      }
+
+      return res.sendStatus(404);
     }
 
-    if (fileCoverPath) {
-      fileStorage.deleteBook(fileCoverPath);
-    }
+    const result = await BooksService.updateBook(id, {
+      title,
+      description,
+      authors,
+      favorite,
+      fileCover: fileCoverPath,
+      fileName: fileBookName,
+      fileBook: fileBookPath,
+    });
 
-    return res.sendStatus(404);
+    return 'error' in result
+      ? res.status(400).json(result.error.details)
+      : res.json(result);
+  } catch (error) {
+    throw new Error(`The error occured while deleting book with id ${id}`);
   }
-
-  const result = await BooksService.updateBook(id, {
-    title,
-    description,
-    authors,
-    favorite,
-    fileCover: fileCoverPath,
-    fileName: fileBookName,
-    fileBook: fileBookPath,
-  });
-
-  return 'error' in result
-    ? res.status(400).json(result.error.details)
-    : res.json(result);
 });
 
 BooksApiController.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
-  const bookToDelete = await BooksService.getBookById(id);
+  try {
+    const bookToDelete = await BooksService.getBookById(id);
 
-  if (bookToDelete === undefined) {
-    return res.sendStatus(404);
+    if (bookToDelete === null) {
+      return res.sendStatus(404);
+    }
+
+    const { fileBook, fileCover } = bookToDelete;
+
+    fileStorage.deleteFile(fileBook);
+    fileStorage.deleteFile(fileCover);
+    const result = await BooksService.deleteBook(id);
+
+    return res.json(result);
+  } catch (error) {
+    throw new Error(`The error occured while updating book with id ${id}`);
   }
-
-  const { fileBook, fileCover } = bookToDelete;
-
-  fileStorage.deleteFile(fileBook);
-  fileStorage.deleteFile(fileCover);
-  const result = await BooksService.deleteBook(id);
-
-  return res.json(result);
 });
 
 BooksApiController.get('/:id/download', async (req, res) => {
   const { id } = req.params;
 
-  const bookToDownload = await BooksService.getBookById(id);
+  try {
+    const bookToDownload = await BooksService.getBookById(id);
 
-  if (bookToDownload === undefined) {
-    return res.sendStatus(404);
+    if (bookToDownload === null) {
+      return res.sendStatus(404);
+    }
+
+    const { fileBook, fileName } = bookToDownload;
+    const pathToDownload = path.join(fileStorage.storagePath, fileBook);
+
+    return res.download(pathToDownload, fileName);
+  } catch (error) {
+    throw new Error(`The error occured while downloading book with id ${id}`);
   }
-
-  const { fileBook, fileName } = bookToDownload;
-  const pathToDownload = path.join(fileStorage.storagePath, fileBook);
-
-  return res.download(pathToDownload, fileName);
 });
 
 exports.BooksApiController = BooksApiController;

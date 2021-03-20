@@ -1,59 +1,69 @@
-class DB {
-  static delay() {
-    return new Promise((res) => {
-      const timerId = setTimeout(() => {
-        clearTimeout(timerId);
-        res();
-      }, Math.round() * 2000);
-    });
-  }
+const { model, Schema } = require('mongoose');
 
-  constructor(entities) {
-    if (!entities && typeof entities !== 'string') {
-      throw new Error('The entity name is missing while initializing DB class.');
+class DB {
+  constructor(entityName, entitySchema) {
+    if (
+      (!entityName && typeof entityName !== 'string')
+      || (!entitySchema && typeof entitySchema !== 'object')
+    ) {
+      throw new Error('The entityName or entitySchema is missing while initializing DB class.');
     }
 
-    this.entities = [];
+    this.entity = model(entityName, new Schema(entitySchema));
   }
 
   async getOneById(id) {
-    await DB.delay();
+    try {
+      const result = await this.entity.findById(id, '-__v');
 
-    return this.entities.find((record) => record.id === id);
+      return result;
+    } catch (error) {
+      throw new Error(`The error occured while trying to find record with ${id}`);
+    }
   }
 
   async getAll() {
-    await DB.delay();
+    try {
+      const result = await this.entity.find({}, '-__v');
 
-    return this.entities;
+      return result;
+    } catch (error) {
+      throw new Error('The error occured while collecting all records');
+    }
   }
 
   async createRecord(record) {
-    await DB.delay();
+    try {
+      const result = await this.entity.create(record);
 
-    this.entities.push(record);
-
-    return record;
+      return result;
+    } catch (error) {
+      throw new Error('The error occured while creating record');
+    }
   }
 
   async updateRecord(id, updatedData) {
-    await DB.delay();
+    try {
+      const result = await this.entity.findOneAndUpdate(
+        { _id: id },
+        updatedData,
+        { new: true, projection: '-__v' },
+      );
 
-    const index = this.entities.findIndex((record) => record.id === id);
-    this.entities[index] = {
-      ...this.entities[index],
-      ...updatedData,
-    };
-
-    return this.entities[index];
+      return result;
+    } catch (error) {
+      throw new Error(`The error occured while updating record with id ${id}`);
+    }
   }
 
   async deleteRecord(id) {
-    await DB.delay();
+    try {
+      const result = await this.entity.deleteOne({ _id: id });
 
-    this.entities = this.entities.filter((record) => record.id !== id);
-
-    return true;
+      return result;
+    } catch (error) {
+      throw new Error(`The error occured while deleting record with id ${id}`);
+    }
   }
 }
 

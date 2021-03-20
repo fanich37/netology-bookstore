@@ -1,8 +1,8 @@
 const { DB } = require('../db');
-const { Book } = require('./books.model');
+const { Book, BookSchema } = require('./books.model');
 const { validateBookOnCreate, validateBookOnUpdate } = require('./books.validators');
 
-const booksDb = new DB('books');
+const booksDb = new DB('books', BookSchema);
 
 class BooksService {
   constructor(db) {
