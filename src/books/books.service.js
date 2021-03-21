@@ -55,7 +55,7 @@ class BooksService {
     });
 
     try {
-      const createdBook = this.db.createRecord(book);
+      const createdBook = await this.db.createRecord(book);
 
       return createdBook;
     } catch (error) {
