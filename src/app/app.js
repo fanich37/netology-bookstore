@@ -20,6 +20,7 @@ app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 app.set('views', [
   path.join(__dirname, '..', 'templates'),
   path.join(__dirname, '..', 'books', 'templates'),
+  path.join(__dirname, '..', 'user', 'templates'),
 ]);
 app.set('view engine', 'ejs');
 

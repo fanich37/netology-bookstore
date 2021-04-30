@@ -22,6 +22,16 @@ class DB {
     }
   }
 
+  async getOneByParams(params) {
+    try {
+      const result = await this.entity.findOne(params, '-__v');
+
+      return result;
+    } catch (error) {
+      throw new Error(`[DB][getOneByParams]. Erorr: ${error.message}.`);
+    }
+  }
+
   async getAll() {
     try {
       const result = await this.entity.find({}, '-__v');

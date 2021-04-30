@@ -1,0 +1,33 @@
+<%- include('../templates/open'); %>
+
+<div class="is-flex is-justify-content-center mt-6">
+  <form class="w-400" action="<%= formAction %>" method="POST">
+    <% userFields.forEach(({ name, type, label }) => { %>
+      <%
+        const error = errors && errors[name] || '';
+        const errorClass = error ? 'is-danger' : '';
+      %>
+      <fieldset class="field">
+        <label class="label"><%= label %></label>
+        <div class="control">
+          <input
+            class="input <%= errorClass %>"
+            name="<%= name %>"
+            type="<%= type %>"
+            placeholder="<%= label %>"
+            value="<%= values[name] %>"
+          >
+        </div>
+        <% if (error) { %>
+          <p class="help is-danger"><%= error %></p>
+        <% } %>
+      </fieldset>
+      <% }); %>
+
+      <fieldset class="field mt-5">
+        <button type="submit" class="button is-fullwidth is-success"><%= actionName %></button>
+      </fieldset>
+  </form>
+</div>
+
+<%- include('../templates/close'); %>
