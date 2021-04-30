@@ -32,18 +32,5 @@ const fileFields = [
   },
 ];
 
-const prepareFormErrors = (errors) => {
-  if (!errors.details || errors.details.length === 0) {
-    return null;
-  }
-
-  return errors.details.reduce((acc, { context, message }) => {
-    const { key } = context;
-
-    return { ...acc, [key]: message };
-  }, {});
-};
-
 exports.textFields = textFields;
 exports.fileFields = fileFields;
-exports.prepareFormErrors = prepareFormErrors;

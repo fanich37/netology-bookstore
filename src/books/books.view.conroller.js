@@ -1,8 +1,8 @@
 const { Router } = require('express');
-const { fetchData } = require('../utils');
+const { fetchData, prepareFormErrors } = require('../utils');
 const { BooksService } = require('./books.service');
 const { multiPartFormDataParser, fileStorage } = require('./books.middleware');
-const { textFields, fileFields, prepareFormErrors } = require('./books.form');
+const { textFields, fileFields } = require('./books.form');
 const { VIEWS_COUNTER_URL } = process.env;
 
 const BooksViewController = Router();

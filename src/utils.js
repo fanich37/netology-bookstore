@@ -6,3 +6,15 @@ exports.fetchData = async (url, options) => {
 
   return json;
 };
+
+exports.prepareFormErrors = (errors) => {
+  if (!errors.details || errors.details.length === 0) {
+    return null;
+  }
+
+  return errors.details.reduce((acc, { context, message }) => {
+    const { key } = context;
+
+    return { ...acc, [key]: message };
+  }, {});
+};
