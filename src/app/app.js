@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const app = express();
 
+const { UserService } = require('../user');
 const helmetContentSecurityPolicy = helmet.contentSecurityPolicy.getDefaultDirectives();
 const { 'upgrade-insecure-requests': _, ...rest } = helmetContentSecurityPolicy;
 
@@ -23,5 +24,6 @@ app.set('views', [
   path.join(__dirname, '..', 'user', 'templates'),
 ]);
 app.set('view engine', 'ejs');
+UserService.init(app);
 
 exports.app = app;

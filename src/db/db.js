@@ -14,7 +14,7 @@ class DB {
 
   async getOneById(id) {
     try {
-      const result = await this.entity.findById(id, '-__v');
+      const result = await this.entity.findById(id, '-__v').lean();
 
       return result;
     } catch (error) {

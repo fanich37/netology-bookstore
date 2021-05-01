@@ -1,31 +1,62 @@
 const { Router } = require('express');
 const { prepareFormErrors } = require('../utils');
 const { UserService } = require('./user.service');
-const { MOCK_USER } = require('./user.mock');
 const { userFields } = require('./user.form');
-const { urlEncodedParser } = require('./user.middleware');
+const { urlEncodedParser, restrictedRouteMiddleware } = require('./user.middleware');
 
 const UserController = Router();
 
-UserController.get('/login', (_, res) => res.render('user-form', {
-  pageTitle: 'Log in and do your job',
-  currentRoute: 'Log in',
-  userFields,
-  errors: {},
-  values: {},
-  formAction: '/user/login',
-  actionName: 'Log in',
-}));
+UserController.get('/login', (req, res) => req.user
+  ? res.redirect('/user/me')
+  : res.render('user-form', {
+    pageTitle: 'Log in and do your job',
+    currentRoute: 'Log in',
+    userFields,
+    errors: {},
+    values: {},
+    formAction: '/user/login',
+    actionName: 'Log in',
+  }),
+);
 
-UserController.get('/signup', (_, res) => res.render('user-form', {
-  pageTitle: 'Sign up and add new books',
-  currentRoute: 'Sign up',
-  userFields,
-  errors: {},
-  values: {},
-  formAction: '/user/signup',
-  actionName: 'Sign up',
-}));
+UserController.post('/login', urlEncodedParser, async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const result = await UserService.login(req, res, next);
+
+    if ('error' in result) {
+      const errors = prepareFormErrors(result.error);
+
+      return res.status(422).render('user-form', {
+        pageTitle: 'Log in and do your job',
+        currentRoute: 'Log in',
+        userFields,
+        errors,
+        values: { email },
+        formAction: '/user/login',
+        actionName: 'Log in',
+      });
+    }
+
+    return res.redirect('/user/me');
+  } catch (error) {
+    throw new Error(`[UserController][post][/login]. Error: ${error.message}.`);
+  }
+});
+
+UserController.get('/signup', (req, res) => req.user
+  ? res.redirect('/user/me')
+  : res.render('user-form', {
+    pageTitle: 'Sign up and add new books',
+    currentRoute: 'Sign up',
+    userFields,
+    errors: {},
+    values: {},
+    formAction: '/user/signup',
+    actionName: 'Sign up',
+  }),
+);
 
 UserController.post('/signup', urlEncodedParser, async (req, res) => {
   const { email, password } = req.body;
@@ -53,14 +84,17 @@ UserController.post('/signup', urlEncodedParser, async (req, res) => {
   }
 });
 
-UserController.post('/login', async (_, res) => {
-  try {
-    const user = await UserService.login(MOCK_USER._id);
+UserController.get(
+  '/me',
+  restrictedRouteMiddleware,
+  (_, res) => res.render('user-card', {
+    pageTitle: 'User page',
+    currentRoute: 'User page',
+  }));
 
-    res.json(user);
-  } catch (error) {
-    throw new Error('The error occured while login user');
-  }
+UserController.post('/logout', (req, res) => {
+  req.logout();
+  res.clearCookie('__bookstore__').redirect('/');
 });
 
 exports.UserController = UserController;
